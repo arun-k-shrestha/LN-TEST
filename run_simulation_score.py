@@ -1,3 +1,6 @@
+# Code adapted from the original implementation by Sindura Saraswathi
+
+import datetime
 import networkx as nx
 import random as rn
 from itertools import islice
@@ -23,7 +26,7 @@ import time
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-      
+startTime = datetime.datetime.now()
 #--------------------------------------------
 global use_log, case
 # global prob_check, prob_dict
@@ -38,7 +41,7 @@ cbr = int(config['General']['cbr'])
 src_type = config['General']['source_type']
 dst_type = config['General']['target_type']
 amt_type = config['General']['amount_type']
-percent_malicious = float(config['General']['malaicious_percent'])
+percent_malicious = float(config['General']['malicious_percent'])
 
 #LND
 attemptcost = int(config['LND']['attemptcost'])/1000
@@ -100,10 +103,10 @@ G = nx.DiGraph()
 G = make_graph(G)
 
 # Mark some nodes as malicious
-def make_malicious(G, percent):
-    malicious_nodes = random.sample(list(G.nodes()), int(len(G.nodes()) * percent))
-    for node in malicious_nodes:
-        G.nodes[node]["honest"] = False
+# def make_malicious(G, percent):
+#     malicious_nodes = random.sample(list(G.nodes()), int(len(G.nodes()) * percent))
+#     for node in malicious_nodes:
+#         G.nodes[node]["honest"] = False
 
 y = []
 cc = 0
@@ -228,9 +231,9 @@ def callable(source, target, amt, result, name):
                         if path[:i] == root:
                             ignore_edges.add((path[i - 1], path[i]))
                     try:
-                        H = G.copy()
-                        H.remove_edges_from(ignore_edges)
-                        H.remove_nodes_from(ignore_nodes)
+                        H = nx.subgraph_view(G, 
+                        filter_node=lambda n: n not in ignore_nodes,
+                        filter_edge=lambda u, v: (u, v) not in ignore_edges)
                         paths = {root[-1]:[root[-1]]}
                         dist = shortest_path_func(
                             H,
@@ -521,6 +524,9 @@ def callable(source, target, amt, result, name):
                 if u==source:
                     fee = 0
                 fee = round(fee, 5)
+
+                if G.nodes[u]["honest"] == False:
+                    return [path, total_fee, total_delay, path_length, 'Failure']
                 if amount > G.edges[u,v]["Balance"] or amount<=0:
                     # G.edges[u,v]["LastFailure"] = 0
                     # if amount < G.edges[u,v]["UpperBound"]:
@@ -749,15 +755,18 @@ if __name__ == '__main__':
     fields = list(ans_list[0].keys())
 
     filename = config['General']['filename']
-    with open(filename, 'w', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fields)
-        writer.writeheader()
-        for row in ans_list:
-            writer.writerow(row)
+    # with open(filename, 'w', newline='') as csvfile:
+    #     writer = csv.DictWriter(csvfile, fieldnames=fields)
+    #     writer.writeheader()
+    #     for row in ans_list:
+    #         writer.writerow(row)
 
         
 #endTime = datetime.datetime.now()
 
-endtime = time.perf_counter()
-print(endtime - start)
+# endtime = time.perf_counter()
+# print(endtime - start)
+
+endTime = datetime.datetime.now()
+print(endTime - startTime)
     

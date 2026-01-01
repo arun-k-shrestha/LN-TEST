@@ -1,4 +1,5 @@
-   
+# Code adapted from the original implementation by Sindura Saraswathi
+
 import datetime
 import networkx as nx
 import random as rn
@@ -18,15 +19,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.optimize as opt
 import pickle
+import random
 import time
 
-# startTime = datetime.datetime.now()
-start = time.perf_counter()
 
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-      
+startTime = datetime.datetime.now()
 #--------------------------------------------
 global use_log, case
 # global prob_check, prob_dict
@@ -36,10 +36,12 @@ epoch = int(config['General']['iterations'])
 
 # print(epoch) #10000
 
+#General
 cbr = int(config['General']['cbr'])
 src_type = config['General']['source_type']
 dst_type = config['General']['target_type']
 amt_type = config['General']['amount_type']
+percent_malicious = float(config['General']['malicious_percent'])
 
 #LND
 attemptcost = int(config['LND']['attemptcost'])/1000
@@ -61,7 +63,6 @@ for bls in bimodal_scales:
     
 lnd_scale = 3e5
 
-
 #---------------------------------------------------------------------------
 def make_graph(G):
     df = pd.read_csv('LN_snapshot.csv')
@@ -70,7 +71,7 @@ def make_graph(G):
     node_num = {}
     nodes_pubkey = list(OrderedSet(list(df['source']) + list(df['destination'])))
     for i in range(len(nodes_pubkey)):
-        G.add_node(i)
+        G.add_node(i, honest = True, score={})
         pubkey = nodes_pubkey[i]
         G.nodes[i]['pubkey'] = pubkey
         node_num[pubkey] = i
@@ -100,6 +101,13 @@ def make_graph(G):
       
 G = nx.DiGraph()
 G = make_graph(G)
+
+# Mark some nodes as malicious
+def make_malicious(G, percent):
+    malicious_nodes = random.sample(list(G.nodes()), int(len(G.nodes()) * percent))
+    for node in malicious_nodes:
+        G.nodes[node]["honest"] = False
+make_malicious(G, percent_malicious)
 
 y = []
 cc = 0
@@ -224,9 +232,9 @@ def callable(source, target, amt, result, name):
                         if path[:i] == root:
                             ignore_edges.add((path[i - 1], path[i]))
                     try:
-                        H = G.copy()
-                        H.remove_edges_from(ignore_edges)
-                        H.remove_nodes_from(ignore_nodes)
+                        H = nx.subgraph_view(G, 
+                        filter_node=lambda n: n not in ignore_nodes,
+                        filter_edge=lambda u, v: (u, v) not in ignore_edges)
                         paths = {root[-1]:[root[-1]]}
                         dist = shortest_path_func(
                             H,
@@ -517,6 +525,11 @@ def callable(source, target, amt, result, name):
                 if u==source:
                     fee = 0
                 fee = round(fee, 5)
+
+                if G.nodes[u]["honest"] == False:
+                    print("malicious")
+                    failure +=1
+                    return [path, total_fee, total_delay, path_length, 'Failure']
                 if amount > G.edges[u,v]["Balance"] or amount<=0:
                     # G.edges[u,v]["LastFailure"] = 0
                     # if amount < G.edges[u,v]["UpperBound"]:
@@ -600,8 +613,11 @@ def callable(source, target, amt, result, name):
     helper(name, algo[name])
     return result, success, failure
         
+# startTime = datetime.datetime.now()
+start = time.perf_counter()  
 
-if __name__ == '__main__':       
+if __name__ == '__main__':   
+
     def node_classifier():
         df = pd.read_csv('LN_snapshot.csv')
         is_multi = df["short_channel_id"].value_counts() > 1
@@ -742,15 +758,18 @@ if __name__ == '__main__':
     fields = list(ans_list[0].keys())
 
     filename = config['General']['filename']
-    with open(filename, 'w', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fields)
-        writer.writeheader()
-        for row in ans_list:
-            writer.writerow(row)
+    # with open(filename, 'w', newline='') as csvfile:
+    #     writer = csv.DictWriter(csvfile, fieldnames=fields)
+    #     writer.writeheader()
+    #     for row in ans_list:
+    #         writer.writerow(row)
 
         
 #endTime = datetime.datetime.now()
 
-endtime = time.perf_counter()
-print(endtime - start)
+# endtime = time.perf_counter()
+# print(endtime - start)
+
+endTime = datetime.datetime.now()
+print(endTime - startTime)
     
