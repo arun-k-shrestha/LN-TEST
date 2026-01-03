@@ -21,7 +21,7 @@ import scipy.optimize as opt
 import pickle
 import random
 import time
-
+import Yao_MPC
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -526,15 +526,18 @@ def callable(source, target, amt, result, name):
                     fee = 0
                 fee = round(fee, 5)
 
-                if G.nodes[u]["honest"] == False:
-                    return [path, total_fee, total_delay, path_length, 'Failure']
-                if amount > G.edges[u,v]["Balance"] or amount<=0:
-                    # G.edges[u,v]["LastFailure"] = 0
-                    # if amount < G.edges[u,v]["UpperBound"]:
-                    #     G.edges[u,v]["UpperBound"] = amount #new
-                    # j = i-1
-                    # release_locked(j, path)
+                if G.nodes[u]["honest"] == False: # HTLC will fail anyway, if node is dishonest
+                    print("malicious")
                     failure +=1
+                    return [path, total_fee, total_delay, path_length, 'Failure']
+                if amount <= 0:
+                    failure += 1
+                    return [path, total_fee, total_delay, path_length, 'Failure']
+                bal = G.edges[u, v]["Balance"]
+                cap = G.edges[u, v]["capacity"]
+                upper = cap + max(1, int(amount))
+                if not Yao_MPC.Yao_Millionaires_Protocol(amount, bal, upper, 40):
+                    # failure += 1
                     return [path, total_fee, total_delay, path_length, 'Failure']
                 # else:
                     # G.edges[u,v]["Balance"] -= amount
