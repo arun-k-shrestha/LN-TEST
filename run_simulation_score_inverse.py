@@ -154,6 +154,27 @@ def make_malicious(G, percent):
         G.nodes[node]["honest"] = False
 make_malicious(G, percent_malicious)
 
+def resample_all_balances(G, mode="uniform"):
+    for (u, v) in list(G.edges()):
+        if u > v:
+            continue
+        if (v, u) not in G.edges:
+            continue
+
+        cap = G.edges[u, v]["capacity"]
+
+        if mode == "bimodal":
+            rng = np.linspace(0, cap, 10000)
+            s = cap / 10
+            P = np.exp(-rng/s) + np.exp((rng - cap)/s)
+            P /= np.sum(P)
+            x = int(np.random.choice(rng, p=P))
+        else:
+            x = int(rn.uniform(0, cap))
+
+        G.edges[u, v]["Balance"] = x
+        G.edges[v, u]["Balance"] = cap - x
+
 y = []
 cc = 0
 #Sample balance from bimodal or uniform distribution
@@ -161,6 +182,7 @@ for i in G.edges:#new
     if 'Balance' not in G.edges[i]:
         cap = G.edges[i]['capacity']
         datasample = config['General']['datasampling']
+        resample_all_balances(G, mode=datasample)
         if datasample == 'bimodal':
             rng = np.linspace(0, cap, 10000)
             s = cap/10
@@ -852,8 +874,18 @@ if __name__ == '__main__':
             if amt_type == 'fixed':
                 amt = int(config['General']['amount'])
             elif amt_type == 'random':
-                k = (tx_num % amt_end_range) + 1
+
+                if src_type == 'poor' or dst_type == 'poor':
+                    max_k = 3        # up to 1,000 sats
+                elif src_type == 'fair' or dst_type == 'fair':
+                    max_k = 5        # up to 100,000 sats
+                else:
+                    max_k = amt_end_range
+
+                k = (i % max_k) + 1
                 amt = rn.randint(10**(k-1), 10**k)
+                # k = (tx_num % amt_end_range) + 1
+                # amt = rn.randint(10**(k-1), 10**k)
             
             # Check if transaction is feasible
             if not node_ok(sender, target):
@@ -889,6 +921,7 @@ if __name__ == '__main__':
     total_failure = sum(f for (r, s, f) in a)
 
     print(total_success, total_failure)
+    print(total_success/(total_success+total_failure))
 
     # If you force only LND in work, then:
     # algos = ['LND']
