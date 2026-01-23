@@ -694,8 +694,19 @@ if __name__ == '__main__':
             amt = int(config['General']['amount'])
             
         elif amt_type == 'random':
-            k = (i%amt_end_range)+1 #i%6 for fair node else i%8 
+
+            if src_type == 'poor' or dst_type == 'poor':
+                max_k = 3        # up to 1,000 sats
+            elif src_type == 'fair' or dst_type == 'fair':
+                max_k = 5        # up to 100,000 sats
+            else:
+                max_k = amt_end_range
+
+            k = (i % max_k) + 1
             amt = rn.randint(10**(k-1), 10**k)
+            
+            # k = (i%amt_end_range)+1 #i%6 for fair node else i%8 
+            # amt = rn.randint(10**(k-1), 10**k)
             
             # k = (i%3)+5#comment this
             # amt = rn.randint(10**(k-1), 10**k)#comment this
