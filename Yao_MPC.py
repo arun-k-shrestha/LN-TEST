@@ -102,3 +102,5 @@ def Yao_Millionaires_Protocol(
         return True
 
     return False
+
+print(Yao_Millionaires_Protocol(100,101.9,10000,1))

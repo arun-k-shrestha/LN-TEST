@@ -1,15 +1,19 @@
 import matplotlib.pyplot as plt
 
+# This is of 40 nodes with 25 transactions - the result might change as we increase number of nodes and transactions
+
 # X values: percentages from 0% to 30% with 5% steps
-x = [0, 5, 10, 15, 20, 25, 30]
+x = [0, 5, 10, 15]
 
 # Three lists of success rates
-base = [10, 25, 40, 55, 70, 85, 90]
-additive = [5, 20, 35, 50, 65, 75, 85]
-inverse = [15, 30, 45, 60, 75, 88, 95]
+
+# additive when 0% Malacious
+base_score = [100, 82.2, 62.5,44]
+additive = [100, 87.3, 68, 45]
+inverse = [100, 86.1, 59, 40.1]
 
 # Plot the lines
-plt.plot(x, base, marker='o', label='Baseline')
+plt.plot(x, base_score, marker='o', label='Baseline')
 plt.plot(x, additive, marker='s', label='Additive Score')
 plt.plot(x, inverse, marker='^', label='Inverse Score')
 

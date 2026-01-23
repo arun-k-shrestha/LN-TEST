@@ -71,7 +71,7 @@ def make_graph(G):
     node_num = {}
     nodes_pubkey = list(OrderedSet(list(df['source']) + list(df['destination'])))
     for i in range(len(nodes_pubkey)):
-        G.add_node(i, honest = True, score={})
+        G.add_node(i, honest = True)
         pubkey = nodes_pubkey[i]
         G.nodes[i]['pubkey'] = pubkey
         node_num[pubkey] = i
