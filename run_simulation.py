@@ -704,7 +704,7 @@ if __name__ == '__main__':
 
             k = (i % max_k) + 1
             amt = rn.randint(10**(k-1), 10**k)
-            
+
             # k = (i%amt_end_range)+1 #i%6 for fair node else i%8 
             # amt = rn.randint(10**(k-1), 10**k)
             
@@ -745,6 +745,7 @@ if __name__ == '__main__':
     total_failure = sum(f for (r, s, f) in a)
 
     print(total_success, total_failure)
+    print(total_success/(total_success+total_failure))
 
     # If you force only LND in work, then:
     # algos = ['LND']

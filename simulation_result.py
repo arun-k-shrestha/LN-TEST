@@ -7,7 +7,7 @@ x = [0, 5, 10, 15]
 
 # Three lists of success rates
 
-# additive when 0% Malacious
+# under different Malacious conditions
 base_score = [100, 82.2, 62.5,44]
 additive = [100, 87.3, 68, 45]
 inverse = [100, 86.1, 59, 40.1]
