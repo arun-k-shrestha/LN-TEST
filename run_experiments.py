@@ -18,7 +18,7 @@ for percent in malicious_percentages:
         config.write(f)
     
     # Run the main script
-    subprocess.run(['python3', 'run_simulation.py'])
+    subprocess.run(['python3', 'run_simulation_score_add.py'])
     
     print(f"\nCompleted {percent*100}% malicious nodes experiment")
 
