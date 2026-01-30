@@ -740,11 +740,11 @@ if __name__ == '__main__':
         i = i+1
 
 
-    # pool = mp.Pool(processes=2)
-    # a = pool.starmap(callable, work)
-    # pool.close()
-    # pool.join()
-    a = [callable(*args) for args in work]
+    pool = mp.Pool(processes=8)
+    a = pool.starmap(callable, work)
+    pool.close()
+    pool.join()
+    # a = [callable(*args) for args in work]
 
     result_dicts = [r for (r, s, f) in a]
     total_success = sum(s for (r, s, f) in a)

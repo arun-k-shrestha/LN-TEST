@@ -23,14 +23,14 @@ for percent in malicious_percentages:
         config.write(f)
     
     # Run the main script
-    print("run_simulation 8 proccess")
+    print("run_simulation_score_add fixed")
      # Run the main script and capture output
     result = subprocess.run(
-        ['python3', 'run_simulation.py'],
+        ['python3', 'run_simulation_score_add.py'],
         capture_output=True,
         text=True
     )
-    # Extract success_percent using regex
+    # Extract success_percent using regexs
     match = re.search(success_pattern, result.stdout)
     if match:
         value = float(match.group(1))
