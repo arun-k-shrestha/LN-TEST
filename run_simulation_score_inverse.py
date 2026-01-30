@@ -44,7 +44,7 @@ dst_type = config['General']['target_type']
 amt_type = config['General']['amount_type']
 percent_malicious = float(config['General']['malicious_percent'])
 NUM_LEARNING_SENDERS = int(config['General'].get('num_learning_senders', 40))
-TRANSACTIONS_PER_SENDER = int(config['General'].get('transactions_per_sender', 25))
+TRANSACTIONS_PER_SENDER = int(config['General'].get('transactions_per_sender', 250))
 
 #LND
 attemptcost = int(config['LND']['attemptcost'])/1000
@@ -530,7 +530,7 @@ def callable(source, target, amt, result, name):
 
             rep_term = LAMBDA_REP * (-math.log(p_rep)) # or what happens if we try? LAMBDA_REP * (1.0 - p_rep)
 
-            cost = cost + rep_term
+            cost = 0
 
         dist = fee_dict[(u,v)] + G.edges[u,v]['Delay']*amt_dict[(u,v)]*rf
         return dist, cost
@@ -908,20 +908,19 @@ if __name__ == '__main__':
             work.append((sender, target, amt, result, 'LND'))
     
     print(f"\nTotal valid transactions generated: {len(work)}")
-    print(f"Starting parallel execution with 8 processes...\n")
 
 
-    pool = mp.Pool(processes=8)
-    a = pool.starmap(callable, work)
-    pool.close()
-    pool.join()
+    a = [callable(*args) for args in work]
 
     result_dicts = [r for (r, s, f) in a]
     total_success = sum(s for (r, s, f) in a)
     total_failure = sum(f for (r, s, f) in a)
 
-    print(total_success, total_failure)
-    print(total_success/(total_success+total_failure))
+    print(f"Success: {total_success}, Failure {total_failure}")
+    success_ratio = total_success/(total_success+total_failure)
+    
+    success_ratio_rounded = round(success_ratio,2)
+    print(f"success_percent: {success_ratio_rounded}")
 
     # If you force only LND in work, then:
     # algos = ['LND']

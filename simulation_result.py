@@ -3,20 +3,48 @@ import matplotlib.pyplot as plt
 # This is of 40 nodes with 25 transactions - the result might change as we increase number of nodes and transactions
 
 # X values: percentages from 0% to 30% with 5% steps
-x = [0,0.05,0.10,0.15,0.20,0.25,0.30]
+x = [0,5,10,15,20,25,30]
 
 # Three lists of success rates
 
 # under different Malacious conditions #fixed balance
-base_score = [0.66, 0.56, 0.48, 0.37, 0.39, 0.22, 0.27]
-additive =   [1.0, 0.79, 0.75, 0.53, 0.57, 0.36, 0.31]
-mpc = []
-inverse = [100, 86.1, 59, 40.1]
+# base_score = [66, 56, 48, 37, 39, 22, 27]
+# additive =   [100, 79, 75, 53, 57, 36, 31]
+# mpc = [100, 85, 61, 41, 45, 32, 25]
+
+
+# under different Malacious conditions #random balance
+base_score = [75, 66, 47, 40, 32, 29, 27]  # vs  [1.0, 0.74, 0.7, 0.56, 0.29, 0.32, 0.32] # 1 processor # 100 times
+additive =  [100,96,75,54,54,29,30] #[100, 74, 70, 56, 29, 32, 32] # 1000
+mpc = [100, 88, 63, 60, 37, 28, 27]
+
+
+y = [0,2.5,5,7.5,10,12.5,15]
+
+# Three lists of success rates
+
+# under different Malacious conditions #fixed balance
+# base_score = [66, 56, 48, 37, 39, 22, 27]
+# additive =   [100, 79, 75, 53, 57, 36, 31]
+# mpc = [100, 85, 61, 41, 45, 32, 25]
+
+
+# under different Malacious conditions #random balance
+base_score = [72.0, 70.0, 61.0, 50.0, 47.0, 47.0, 41.0]  # vs  [1.0, 0.74, 0.7, 0.56, 0.29, 0.32, 0.32] # 1 processor # 100 times
+additive =  [100,96,75,54,54,29,30] #[100, 74, 70, 56, 29, 32, 32] # 1000
+mpc = [100, 88, 63, 60, 37, 28, 27]
+
+
+
+
+# plt.plot(y, base_score, marker='o', label='Baseline')
+# plt.plot(y, additive, marker='s', label='Additive Score')
+# plt.plot(y, mpc, marker='^', label='MPC Score')
 
 # Plot the lines
 plt.plot(x, base_score, marker='o', label='Baseline')
 plt.plot(x, additive, marker='s', label='Additive Score')
-plt.plot(x, inverse, marker='^', label='Inverse Score')
+plt.plot(x, mpc, marker='^', label='MPC Score')
 
 # Labels and title
 plt.xlabel('Percentage (%)')
@@ -24,7 +52,7 @@ plt.ylabel('Success Rate (%)')
 plt.title('Success Rate vs Malacious Node')
 
 # Axis limits
-plt.xlim(0, 30)
+plt.xlim(0, 40)
 plt.ylim(0, 100)
 
 # Grid and legend

@@ -3,7 +3,7 @@ import configparser
 import re
 
 # Define malicious percentages to test
-malicious_percentages = [0.0,0.05,0.1,0.15,0.20,0.25,0.30]
+malicious_percentages = [0,0.025,0.05,0.075,0.10,0.125,0.15]
 success_rate =[]
 # Regex pattern to extract success_percent
 success_pattern = r"success_percent\s*:\s*([0-9.]+)"
@@ -23,13 +23,13 @@ for percent in malicious_percentages:
         config.write(f)
     
     # Run the main script
+    print("run_simulation 8 proccess")
      # Run the main script and capture output
     result = subprocess.run(
-        ['python3', 'run_simulation_mpc.py'],
+        ['python3', 'run_simulation.py'],
         capture_output=True,
         text=True
     )
-    print("run_simulation_mpc.py")
     # Extract success_percent using regex
     match = re.search(success_pattern, result.stdout)
     if match:

@@ -740,6 +740,8 @@ if __name__ == '__main__':
     pool.close()
     pool.join()
 
+    # a = [callable(*args) for args in work]
+
     result_dicts = [r for (r, s, f) in a]
     total_success = sum(s for (r, s, f) in a)
     total_failure = sum(f for (r, s, f) in a)
@@ -748,7 +750,7 @@ if __name__ == '__main__':
     success_ratio = total_success/(total_success+total_failure)
     
     success_ratio_rounded = round(success_ratio,2)
-    print(f"success_percent: {success_ratio_rounded}")
+    print(f"success_percent: {success_ratio_rounded*100}") # converting into percentage
 
     # If you force only LND in work, then:
     # algos = ['LND']

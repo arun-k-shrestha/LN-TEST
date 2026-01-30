@@ -900,10 +900,7 @@ if __name__ == '__main__':
     print(f"Starting parallel execution with 8 processes...\n")
 
 
-    pool = mp.Pool(processes=8)
-    a = pool.starmap(callable, work)
-    pool.close()
-    pool.join()
+    a = [callable(*args) for args in work]
 
     result_dicts = [r for (r, s, f) in a]
     total_success = sum(s for (r, s, f) in a)
