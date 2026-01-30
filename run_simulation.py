@@ -744,8 +744,11 @@ if __name__ == '__main__':
     total_success = sum(s for (r, s, f) in a)
     total_failure = sum(f for (r, s, f) in a)
 
-    print(total_success, total_failure)
-    print(total_success/(total_success+total_failure))
+    print(f"Success: {total_success}, Failure {total_failure}")
+    success_ratio = total_success/(total_success+total_failure)
+    
+    success_ratio_rounded = round(success_ratio,2)
+    print(f"success_percent: {success_ratio_rounded}")
 
     # If you force only LND in work, then:
     # algos = ['LND']

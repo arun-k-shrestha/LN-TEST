@@ -44,7 +44,7 @@ dst_type = config['General']['target_type']
 amt_type = config['General']['amount_type']
 percent_malicious = float(config['General']['malicious_percent'])
 NUM_LEARNING_SENDERS = int(config['General'].get('num_learning_senders', 40))
-TRANSACTIONS_PER_SENDER = int(config['General'].get('transactions_per_sender', 25))
+TRANSACTIONS_PER_SENDER = int(config['General'].get('transactions_per_sender', 250))
 
 #LND
 attemptcost = int(config['LND']['attemptcost'])/1000
@@ -205,15 +205,15 @@ for i in G.edges:#new
         y.append(cap-x)
         
         if G.edges[v,u]['Balance'] < 0 or G.edges[v,u]['Balance'] > G.edges[i]['capacity']:
-            print(i, 'Balance error at', (v,u))
+            #print(i, 'Balance error at', (v,u))
             raise ValueError
             
         if G.edges[u,v]['Balance'] < 0 or G.edges[u,v]['Balance'] > G.edges[i]['capacity']:
-            print(i, 'Balance error at', (u,v))
+            #print(i, 'Balance error at', (u,v))
             raise ValueError
             
         if G.edges[(v,u)]['Balance'] + G.edges[(u,v)]['Balance'] != cap:
-            print('Balance error at', (v,u))
+            #print('Balance error at', (v,u))
             raise ValueError
 
 
@@ -651,7 +651,7 @@ def callable(source, target, amt, result, name):
             # print(G.nodes[source]["rating"])
             return [path, total_fee, total_delay, path_length, 'Success']
         except Exception as e:
-            print(e)
+            #print(e)
             failure +=1
             return "Routing Failed due to the above error"
     
@@ -692,7 +692,7 @@ def callable(source, target, amt, result, name):
             case = config['LND']['LND1']
             modified_dijkstra_caller('LND1', func)       
         except Exception as e:
-            print("Error:", e)
+            #print("Error:", e)
             pass
             
     algo = {'LND':lnd_cost} 
@@ -909,8 +909,10 @@ if __name__ == '__main__':
     total_success = sum(s for (r, s, f) in a)
     total_failure = sum(f for (r, s, f) in a)
 
-    print(total_success, total_failure)
-    print(total_success/(total_success+total_failure))
+    success_ratio = total_success / (total_success + total_failure)
+    success_ratio_rounded = round(success_ratio, 2)
+
+    print(f"success_percent:{success_ratio_rounded}")
 
     # If you force only LND in work, then:
     # algos = ['LND']

@@ -3,13 +3,14 @@ import matplotlib.pyplot as plt
 # This is of 40 nodes with 25 transactions - the result might change as we increase number of nodes and transactions
 
 # X values: percentages from 0% to 30% with 5% steps
-x = [0, 5, 10, 15]
+x = [0,0.05,0.10,0.15,0.20,0.25,0.30]
 
 # Three lists of success rates
 
-# under different Malacious conditions
-base_score = [100, 82.2, 62.5,44]
-additive = [100, 87.3, 68, 45]
+# under different Malacious conditions #fixed balance
+base_score = [0.66, 0.56, 0.48, 0.37, 0.39, 0.22, 0.27]
+additive =   [1.0, 0.79, 0.75, 0.53, 0.57, 0.36, 0.31]
+mpc = []
 inverse = [100, 86.1, 59, 40.1]
 
 # Plot the lines
