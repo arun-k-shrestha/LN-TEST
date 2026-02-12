@@ -1,4 +1,9 @@
-# Code adapted from the original implementation by Sindura Saraswathi
+# This code is modified
+
+# The original Author: 
+# S. Saraswathi and C. K¨ummerle, “An exposition of pathfinding
+# strategies within lightning network clients,” 2025. [Online]. Available:
+# https://arxiv.org/abs/2410.13784
 
 import datetime
 import networkx as nx
@@ -29,12 +34,7 @@ config.read('config.ini')
 startTime = datetime.datetime.now()
 #--------------------------------------------
 global use_log, case
-# global prob_check, prob_dict
-# prob_check = {}
-# prob_dict = {}
 epoch = int(config['General']['iterations'])
-
-# print(epoch) #10000
 
 #General
 cbr = int(config['General']['cbr'])
@@ -84,7 +84,7 @@ def make_graph(G):
         channel_id = df['short_channel_id'][i]
         block_height = int(channel_id.split('x')[0])
         G.edges[u,v]['id'] = channel_id
-        G.edges[u,v]['capacity'] = int(df['satoshis'][i])#uncomment
+        G.edges[u,v]['capacity'] = int(df['satoshis'][i])
         # G.edges[u,v]['capacity'] = 10**8 #new
         G.edges[u,v]['UpperBound'] = int(df['satoshis'][i])
         # G.edges[u,v]['UpperBound'] = 10**8 #new
@@ -457,42 +457,6 @@ def callable(source, target, amt, result, name):
         dist = fee_dict[(u,v)] + G.edges[u,v]['Delay']*amt_dict[(u,v)]*rf
         return dist, cost
 
-
-    #v - target, u - source, d - G.edges[v,u]
-    def lnd_cost_test(v,u,d):
-        # global prob_check, prob_dict#new
-        global timepref, case
-        compute_fee(v,u,d)        
-        timepref *= 0.9
-        defaultattemptcost = attemptcost+attemptcostppm*amt_dict[(u,v)]/1000000
-        penalty = defaultattemptcost * ((1/(0.5-timepref/2)) - 1)
-        cap = G.edges[u,v]["capacity"]
-        
-        if amt_dict[(u,v)] > cap:
-            return float('inf'), float('inf')
-        
-        # prob = (G.edges[u,v]['UpperBound'] - amt_dict[(u,v)]+1)/(G.edges[u,v]['UpperBound'] - G.edges[u,v]['LowerBound']+1)
-        if G.edges[u,v]["capacity"] != 0:
-            prob = 1 - (amt_dict[(u,v)]/cap)
-            
-        if v == target:
-            prob_dict[v,u] = prob
-        else:
-            pred_node = prev_dict[v][0]
-            if u == source:
-                if G.edges[u,v]["Balance"]<amt_dict[(u,v)]:
-                    prob = 0
-                else:
-                    prob = 1
-            prob *= prob_dict[pred_node, v]
-            prob_dict[v,u] = prob
-        if prob < 0.01:
-            cost = float('inf')
-        else:
-            cost = penalty/prob
-        dist = fee_dict[(u,v)] + G.edges[u,v]['Delay']*amt_dict[(u,v)]*rf
-        return dist, cost
-    
      
     #simulate payment routing on the path found by the LN clients
     def route(G, path, source, target):
@@ -557,19 +521,13 @@ def callable(source, target, amt, result, name):
             return "Routing Failed due to the above error"
     
     
-    #----------------------------------------------
-    def dijkstra_caller(res_name, func):
-        dist = nx2._dijkstra(G, source=target, target=source, weight = func, pred=prev_dict, paths=paths)
-        res = paths[source]
-        #print("Path found by", res_name, res[::-1])
-        result[res_name] = route(G, res, source, target)
+    #----------------------------------------------w
         
     def modified_dijkstra_caller(res_name, func):
         dist = dijkstra_lnd(G, sources=[target], target=source, weight = func, pred=prev_dict, paths=paths)
         res = paths[source]
         #print("Path found by", res_name, res[::-1])
         result[res_name] = route(G, res, source, target)
-        
         
     def helper(name, func):
         global fee_dict, amt_dict, cache_node, visited
@@ -611,6 +569,20 @@ def callable(source, target, amt, result, name):
     
     helper(name, algo[name])
     return result, success, failure
+
+
+
+def node_channel_count(G, node):
+    # number of outgoing channels (unique neighbors in the directed graph)
+    return G.out_degree(node)
+
+def node_channel_balance(G, node):
+    # total outbound liquidity available from this node
+    bal = 0
+    for _, v in G.out_edges(node):
+        bal += G.edges[(node, v)].get("Balance", 0)
+    return bal
+
         
 # startTime = datetime.datetime.now()
 start = time.perf_counter()  
@@ -734,6 +706,21 @@ if __name__ == '__main__':
         work.append((source, target, amt, result, 'LND')) #new
         i = i+1
 
+    print("\n=== Transaction Channel Stats ===")
+    for tx_i, (source, target, amt, result, algo) in enumerate(work, start=1):
+        s_cnt = node_channel_count(G, source)
+        s_bal = node_channel_balance(G, source)
+
+        t_cnt = node_channel_count(G, target)
+        t_bal = node_channel_balance(G, target)
+
+        print(
+            f"Tx {tx_i}: "
+            f"Sender={source} [channels={s_cnt}, out_balance={s_bal} sats]  ->  "
+            f"Receiver={target} [channels={t_cnt}, out_balance={t_bal} sats]  |  "
+            f"Payment={amt} sats"
+        )
+    print("=================================\n")
 
     pool = mp.Pool(processes=8)
     a = pool.starmap(callable, work)
