@@ -548,6 +548,7 @@ def callable(source, target, amt, result, name,use_mpc):
                     ok = (bal >= amount)
 
                 if not ok:
+                    failure+=1
                     return [path, total_fee, total_delay, path_length, 'Failure']
                 # else:
                     # G.edges[u,v]["Balance"] -= amount
@@ -765,11 +766,11 @@ if __name__ == '__main__':
     #     pool.join()
     #     return out
 
-    with mp.Pool(processes=8) as pool:
-        a_mpc = pool.starmap(callable, work_mpc)
+    # with mp.Pool(processes=8) as pool:
+    #     a_mpc = pool.starmap(callable, work_mpc)
 
-    with mp.Pool(processes=8) as pool:
-        a_nompc = pool.starmap(callable, work_nompc)
+    # with mp.Pool(processes=8) as pool:
+    #     a_nompc = pool.starmap(callable, work_nompc)
 
 
 
