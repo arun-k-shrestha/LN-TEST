@@ -542,14 +542,16 @@ def callable(source, target, amt, result, name,use_mpc):
                 cap = G.edges[u, v]["capacity"]
                 if USE_MPC:
                     upper = cap + max(1, int(amount))
-                    ok = Yao_MPC.Yao_Millionaires_Protocol(amount, bal, upper, 40)
+                    if not Yao_MPC.Yao_Millionaires_Protocol(amount, bal, upper, 40):
+                        # here we don't increase the failure +=1 because this is a pre check before the HTLC creation
+                        return [path, total_fee, total_delay, path_length, 'Failure']
+                    
                 else:
-                    # Use the LND path finding
-                    ok = (bal >= amount)
-
-                if not ok:
-                    failure+=1
-                    return [path, total_fee, total_delay, path_length, 'Failure']
+                    # same the main run_simulation.
+                    if not (bal >= amount):
+                        # we are counting failure +=1 because this will happen after HTLC
+                        failure+=1 
+                        return [path, total_fee, total_delay, path_length, 'Failure']
                 # else:
                     # G.edges[u,v]["Balance"] -= amount
                     # G.edges[u,v]["Locked"] = amount  
@@ -796,14 +798,6 @@ if __name__ == '__main__':
     rows_nompc = [r for (r, s, f) in a_nompc]
 
     paired = []
-    for i in range(len(rows_mpc)):
-        base = {k: v for k, v in rows_mpc[i].items() if k not in ("elapsed_sec", "mpc_enabled")}
-        paired.append({
-            **base,
-            "elapsed_mpc_sec": rows_mpc[i]["elapsed_sec"],
-            "elapsed_nompc_sec": rows_nompc[i]["elapsed_sec"],
-        })
-
 
     # total_success = sum(s for (r, s, f) in a_mpc)
     # total_failure = sum(f for (r, s, f) in a_mpc)
