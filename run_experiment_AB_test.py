@@ -570,7 +570,7 @@ def callable(source, target, amt, result, name,use_mpc):
             success += 1
             return [path, total_fee, total_delay, path_length, 'Success']
         except Exception as e:
-            print(e)
+            # print(e)
             failure +=1
             return "Routing Failed due to the above error"
     
@@ -837,9 +837,12 @@ if __name__ == '__main__':
             "elapsed_nompc_sec": t_nom,
             "elapsed_diff_sec": (t_mpc - t_nom) if (t_mpc is not None and t_nom is not None) else None,
         })
+    def is_success(row, key="LND1"):
+        v = row.get(key)
+        return isinstance(v, list) and len(v) >= 5 and v[4] == "Success"
 
-    mpc_times = [r["elapsed_sec"] for r in rows_mpc if r.get("elapsed_sec") is not None]
-    nompc_times = [r["elapsed_sec"] for r in rows_nompc if r.get("elapsed_sec") is not None]
+    mpc_times = [r["elapsed_sec"] for r in rows_mpc if r.get("elapsed_sec") is not None and is_success(r, "LND1")]
+    nompc_times = [r["elapsed_sec"] for r in rows_nompc if r.get("elapsed_sec") is not None and is_success(r, "LND1")]
 
     avg_mpc = sum(mpc_times) / len(mpc_times) if mpc_times else 0
     avg_nompc = sum(nompc_times) / len(nompc_times) if nompc_times else 0

@@ -112,3 +112,16 @@ plt.legend()
 
 # Show the plot
 plt.show()
+
+
+
+# MPC and LND Path find time difference testing
+# Calcuation based on 10,000 simulation
+# under [0%, 3%, 6%, 9%, 12%, 15%] malacious node
+MPC_Time = [0.2217,0.2130,0.2174,0.2147,0.2104]
+LND_Time = [0.2208,0.2121,0.2181,0.2135,0.2099]
+
+#successrate
+MPC_Success = [100,88,75,71,57]
+LND_Success = [72,65,57,55,45]
+
