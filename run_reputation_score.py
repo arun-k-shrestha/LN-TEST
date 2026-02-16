@@ -1,4 +1,11 @@
-# Code adapted from the original implementation by Sindura Saraswathi
+# This code is modified
+
+# The original Author: 
+# S. Saraswathi and C. K¨ummerle, “An exposition of pathfinding
+# strategies within lightning network clients,” 2025. [Online]. Available:
+# https://arxiv.org/abs/2410.13784
+
+# This simulation uses the reputation score
 
 import datetime
 import networkx as nx
@@ -43,8 +50,8 @@ src_type = config['General']['source_type']
 dst_type = config['General']['target_type']
 amt_type = config['General']['amount_type']
 percent_malicious = float(config['General']['malicious_percent'])
-NUM_LEARNING_SENDERS = int(config['General'].get('num_learning_senders', 40))
-TRANSACTIONS_PER_SENDER = int(config['General'].get('transactions_per_sender', 25))
+NUM_LEARNING_SENDERS = int(config['General']['num_learning_senders'])
+TRANSACTIONS_PER_SENDER = int(config['General']['transactions_per_sender'])
 
 #LND
 attemptcost = int(config['LND']['attemptcost'])/1000
@@ -67,10 +74,10 @@ for bls in bimodal_scales:
 lnd_scale = 3e5
 
 # ---------------- Rating system (decayed S/F + Beta smoothing) ----------------
-RATING_HALF_LIFE_H = 1.0   # H = 1 → after 1 new event, past evidence is worth 50% H = 2 → after 2 new events, past evidence is worth 50% (then H=1 will be 70.7)
-RATING_ALPHA = 1.0         # Laplace prior alpha
-RATING_BETA  = 1.0         # Laplace prior beta
-MIN_RELIABILITY = 0.05     # below this, the sender avoids the node (optional
+RATING_HALF_LIFE_H = 5 # H = 1 → after 1 new event, past evidence is worth 50% H = 2 → after 2 new events, past evidence is worth 50% (then H=1 will be 70.7)
+RATING_ALPHA = 5      # Laplace prior alpha
+RATING_BETA  = 5   # Laplace prior beta
+MIN_RELIABILITY = 0   # below this, the sender avoids the node 
 
 #---------------------------------------------------------------------------
 
@@ -154,6 +161,28 @@ def make_malicious(G, percent):
         G.nodes[node]["honest"] = False
 make_malicious(G, percent_malicious)
 
+
+def resample_all_balances(G, mode="uniform"):
+    for (u, v) in list(G.edges()):
+        if u > v:
+            continue
+        if (v, u) not in G.edges:
+            continue
+
+        cap = G.edges[u, v]["capacity"]
+
+        if mode == "bimodal":
+            rng = np.linspace(0, cap, 10000)
+            s = cap / 10
+            P = np.exp(-rng/s) + np.exp((rng - cap)/s)
+            P /= np.sum(P)
+            x = int(np.random.choice(rng, p=P))
+        else:
+            x = int(rn.uniform(0, cap))
+
+        G.edges[u, v]["Balance"] = x
+        G.edges[v, u]["Balance"] = cap - x
+
 y = []
 cc = 0
 #Sample balance from bimodal or uniform distribution
@@ -161,6 +190,7 @@ for i in G.edges:#new
     if 'Balance' not in G.edges[i]:
         cap = G.edges[i]['capacity']
         datasample = config['General']['datasampling']
+        resample_all_balances(G, mode=datasample)
         if datasample == 'bimodal':
             rng = np.linspace(0, cap, 10000)
             s = cap/10
@@ -182,15 +212,15 @@ for i in G.edges:#new
         y.append(cap-x)
         
         if G.edges[v,u]['Balance'] < 0 or G.edges[v,u]['Balance'] > G.edges[i]['capacity']:
-            print(i, 'Balance error at', (v,u))
+            #print(i, 'Balance error at', (v,u))
             raise ValueError
             
         if G.edges[u,v]['Balance'] < 0 or G.edges[u,v]['Balance'] > G.edges[i]['capacity']:
-            print(i, 'Balance error at', (u,v))
+            #print(i, 'Balance error at', (u,v))
             raise ValueError
             
         if G.edges[(v,u)]['Balance'] + G.edges[(u,v)]['Balance'] != cap:
-            print('Balance error at', (v,u))
+            #print('Balance error at', (v,u))
             raise ValueError
 
 
@@ -391,8 +421,6 @@ def callable(source, target, amt, result, name):
                     elif vu_prob == seen[u]:# or prob <= p_path[u]:
                         if pred is not None:
                             pred[u].append(v)
-    
-                
             # The optional predecessor and path dictionaries can be accessed
             # by the caller via the pred and paths objects passed as arguments.
             return probability_dist
@@ -473,9 +501,9 @@ def callable(source, target, amt, result, name):
             return float('inf'), float('inf') # (distance, cost) -> (fees+delay, probability+penalty)
     
         compute_fee(v,u,d)        
-        timepref *= 0.9
+        tp = timepref
         defaultattemptcost = attemptcost+attemptcostppm*amt_dict[(u,v)]/1000000
-        penalty = defaultattemptcost * ((1/(0.5-timepref/2)) - 1)
+        penalty = defaultattemptcost * ((1/(0.5-tp/2)) - 1)
         cap = G.edges[u,v]["capacity"]
         if amt_dict[(u,v)] > cap:
             return float('inf'), float('inf')
@@ -503,6 +531,15 @@ def callable(source, target, amt, result, name):
             cost = float('inf')
         else:
             cost = penalty/prob
+            # p_rep = get_reliability(G, source, v)  # v is the next-hop node being evaluated
+            # p_rep = max(p_rep, 1e-6)
+
+            # LAMBDA_REP = 1.0  # we can tune this??  => Total valid transactions generated: 319 --> meaning the valid path is decreased
+
+            # rep_term = LAMBDA_REP * (-math.log(p_rep)) # or what happens if we try? LAMBDA_REP * (1.0 - p_rep)
+
+            # cost = cost + rep_term
+
         dist = fee_dict[(u,v)] + G.edges[u,v]['Delay']*amt_dict[(u,v)]*rf
         return dist, cost
 
@@ -584,26 +621,27 @@ def callable(source, target, amt, result, name):
                 bal = G.edges[u, v]["Balance"]
                 cap = G.edges[u, v]["capacity"]
                 upper = cap + max(1, int(amount))
-
                 # important: we are not couting failure because this is pre-check not system failure.
                 if G.nodes[u].get("honest", True): # only checking honest node because the dishonest node will bypass this
                     if not Yao_MPC.Yao_Millionaires_Protocol(amount, bal, upper, 40):
                         # failure += 1 
                         return [path, total_fee, total_delay, path_length, 'Failure']
-                    
+                mpc_passed_hops.add((u, v))
+
                 if not G.nodes[u].get("honest",True):
                     failure += 1 
-                    update_reliability(G, source, v, success=False)
+                    update_reliability(G, source, u, success=False)
+                    # print(G.nodes[source]["rating"])
+                    # print scores after this transaction
+                    # or: print_sender_scores(G, source, nodes=None, top_k=20)  # top-K overall
                     return [path, total_fee, total_delay, path_length, 'Failure']
                 
-                mpc_passed_hops.add((u, v))
 
                 # even after the MPC check, if it fails, we provide them a bad rating. This will be true for dishonest node
                 if amount > G.edges[u, v]["Balance"] or amount <= 0:
                     failure += 1
                     # penalize the hop that "looked ok under MPC" but failed during HTLC
-                    # choose to penalize v (next-hop) OR u (forwarder). Here: penalize v.
-                    update_reliability(G, source, v, success=False)
+                    update_reliability(G, source, u, success=False)
                     return [path, total_fee, total_delay, path_length, 'Failure']
 
                 amount = round(amount - fee, 5)
@@ -620,11 +658,13 @@ def callable(source, target, amt, result, name):
             # reward nodes on the successful path (excluding sender)
             for node in path[1:]:
                 update_reliability(G, source, node, success=True)
-            #print(G.nodes[source]["rating"])
+            # print(f"\n[tx done] sender={source} target={target} amt={amt} status=Success")
+            # print_sender_scores(G, source, nodes=path[1:])
             return [path, total_fee, total_delay, path_length, 'Success']
         except Exception as e:
-            print(e)
+            #print(e)
             failure +=1
+            
             return "Routing Failed due to the above error"
     
     
@@ -664,7 +704,7 @@ def callable(source, target, amt, result, name):
             case = config['LND']['LND1']
             modified_dijkstra_caller('LND1', func)       
         except Exception as e:
-            print("Error:", e)
+            #print("Error:", e)
             pass
             
     algo = {'LND':lnd_cost} 
@@ -749,6 +789,31 @@ if __name__ == '__main__':
             tgt_max = max(tgt_max, G.edges[edges]['Balance'])
         upper_bound = int(min(src_max, tgt_max))
         return upper_bound
+    
+
+    def print_sender_scores(G, sender: int, nodes=None, top_k: int = 20):
+        rating = G.nodes[sender].get("rating", {})
+        if not rating:
+            print(f"[scores] sender={sender}: (no ratings yet)")
+            return
+
+        if nodes is None:
+            items = [(n, rec.get("p", 0.0), rec.get("S", 0.0), rec.get("F", 0.0)) for n, rec in rating.items()]
+            items.sort(key=lambda x: x[1], reverse=True)
+            items = items[:top_k]
+            print(f"[scores] sender={sender} top {len(items)} rated nodes (by p):")
+            for (n, p, S, F) in items:
+                print(f"  node={n:>6}  p={p:0.4f}  S={S:0.2f}  F={F:0.2f}")
+        else:
+            print(f"[scores] sender={sender} selected nodes:")
+            for n in nodes:
+                rec = rating.get(n)
+                if rec is None:
+                    p = get_reliability(G, sender, n)
+                    print(f"  node={n:>6}  p={p:0.4f}  (no history)")
+                else:
+                    print(f"  node={n:>6}  p={rec.get('p', 0.0):0.4f}  S={rec.get('S', 0.0):0.2f}  F={rec.get('F', 0.0):0.2f}")
+
     
     print("\n" + "="*80)
     print("LEARNING SENDER EXPERIMENT")
@@ -835,8 +900,21 @@ if __name__ == '__main__':
             if amt_type == 'fixed':
                 amt = int(config['General']['amount'])
             elif amt_type == 'random':
-                k = (tx_num % amt_end_range) + 1
+
+                if src_type == 'poor' or dst_type == 'poor':
+                    max_k = 4        # up to 10,000 sats
+                elif src_type == 'fair' or dst_type == 'fair':
+                    max_k = 6        # up to 1,000,000 sats
+                else:
+                    max_k = amt_end_range
+
+                k = rn.randint(2, max_k)
+                k = max(k, rn.randint(2, max_k))   # push toward larger number
+
+                # k = rn.randint(2, max_k)
                 amt = rn.randint(10**(k-1), 10**k)
+                # k = (tx_num % amt_end_range) + 1
+                # amt = rn.randint(10**(k-1), 10**k)
             
             # Check if transaction is feasible
             if not node_ok(sender, target):
@@ -855,23 +933,22 @@ if __name__ == '__main__':
                 'TxNumber': tx_num,
                 'TotalTxSoFar': len(work)
             }
-            
             work.append((sender, target, amt, result, 'LND'))
     
     print(f"\nTotal valid transactions generated: {len(work)}")
     print(f"Starting parallel execution with 8 processes...\n")
 
 
-    pool = mp.Pool(processes=8)
-    a = pool.starmap(callable, work)
-    pool.close()
-    pool.join()
+    a = [callable(*args) for args in work]
 
     result_dicts = [r for (r, s, f) in a]
     total_success = sum(s for (r, s, f) in a)
     total_failure = sum(f for (r, s, f) in a)
 
-    print(total_success, total_failure)
+    success_ratio = total_success / (total_success + total_failure)
+    success_ratio_rounded = round(success_ratio, 2)
+    print(f"total sucesss number {total_success}, total failure number {total_failure}")
+    print(f"success_percent:{success_ratio_rounded}")
 
     # If you force only LND in work, then:
     # algos = ['LND']

@@ -1,40 +1,30 @@
 import random
 import math
 
-# === Global shared parameters ===
 MODULUS = 982451653        # Large prime
 LINEAR_MULTIPLIER = 7919
 LINEAR_OFFSET = 42
 
-
-# === Math utilities ===
-
 def extended_gcd(a, b):
-    """Extended Euclidean Algorithm"""
     if b == 0:
         return (a, 1, 0)
     gcd, x1, y1 = extended_gcd(b, a % b)
     return (gcd, y1, x1 - (a // b) * y1)
 
-
+# Find multiplicative inverse modulo modulus
 def modular_inverse(value, modulus):
-    """Find multiplicative inverse modulo modulus"""
     gcd, inverse, _ = extended_gcd(value % modulus, modulus)
     if gcd != 1:
         return None
     return inverse % modulus
 
 
-# === Shared transformation (same role as sharedFunction) ===
-
+# Shared transformation
 def shared_linear_transform(x):
     """Public one-way linear transformation"""
     return (LINEAR_MULTIPLIER * x + LINEAR_OFFSET) % MODULUS
 
-
-# === Optimized Yao's Millionaires Protocol ===
 # Highest must be greater than Sender
-
 def Yao_Millionaires_Protocol(
     comparison_threshold,
     sender_value,
@@ -42,11 +32,6 @@ def Yao_Millionaires_Protocol(
     probe_value,
     random_mask=None
 ):
-    """
-    Determines whether sender_value >= comparison_threshold
-    without revealing sender_value.
-    """
-
     # Choose random blinding factor
     if random_mask is None:
         random_mask = random.randint(1, 500)

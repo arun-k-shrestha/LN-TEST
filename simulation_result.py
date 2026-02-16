@@ -1,115 +1,99 @@
 import matplotlib.pyplot as plt
 
-# This is of 40 nodes with 25 transactions - the result might change as we increase number of nodes and transactions
-
-# X values: percentages from 0% to 30% with 5% steps
-# x = [0,5,10,15,20,25,30]
-
-# Three lists of success rates
-
-# under different Malacious conditions #fixed balance
-# base_score = [66, 56, 48, 37, 39, 22, 27]
-# additive =   [100, 79, 75, 63, 57, 36, 31]
-# mpc = [100, 85, 61, 41, 45, 32, 25]
+# --------        Figure 1: Fixed Amount      -----------
 
 
-# under different Malacious conditions #random balance
-# base_score = [75, 66, 47, 40, 32, 29, 27]  # vs  [1.0, 0.74, 0.7, 0.56, 0.29, 0.32, 0.32] # 1 processor # 100 times
-# additive =  [100,96,75,64,54,29,30] #[100, 74, 70, 56, 29, 32, 32] # 1000
-# mpc = [100, 88, 63, 60, 37, 28, 27]
+malacious_percentage = [0,3,6,9,12,15]
 
+# under different Malacious conditions with the fixed balance
+lnd_path_fixed = [68, 59, 57, 53, 52, 40]
+reputation_score_fixed =   [100, 93, 84, 75, 72, 60]
+mpc_fixed = [100, 88, 73, 72, 63, 54]
+shortest_path_fixed = [46,38,41,34.5,35,29]
 
-y = [0,3,6,9,12,15]
-
-y1 =[0,3,6,9,12,15]
-
-# Three lists of success rates
-
-# under different Malacious conditions #fixed balance
-base_score = [68.0, 59.0, 56.99, 53.0, 52.0, 40]
-additive =   [100, 99, 84, 78, 72, 56]
-mpc = [100, 92, 81, 76, 67, 56]
-shortestpath = [46,38,41,34.5,35,29]
-
-
-# under different Malacious conditions #random balance
-# base_score = [72.0, 70.0, 61.0, 50.0, 47.0, 47.0, 41.0]  # vs  [1.0, 0.74, 0.7, 0.56, 0.29, 0.32, 0.32] # 1 processor # 100 times
-# additive =   [100, 90, 92, 75, 82, 64, 66] #vs [100, 91, 85, 67, 65, 48, 36] #[100, 74, 70, 56, 29, 32, 32] # 1000
-# mpc = [100, 87, 76, 62, 71, 54, 50]
-# shortestpath = [45,39,41,37,33,29,28]
-
-
-# base_score = [70.0, 69, 68.0, 65.0, 50.0,44.0]  # vs  [1.0, 0.74, 0.7, 0.56, 0.29, 0.32, 0.32] # 1 processor # 100 times
-# additive =   [100, 90, 92, 75, 82, 65] #vs [100, 91, 85, 67, 65, 48, 36] #[100, 74, 70, 56, 29, 32, 32] # 1000
-# mpc = [100, 88, 79, 72, 71, 52]
-# shortestpath = [45,39,43,37,33,28.5]
-
-
-
-
-# plt.plot(y, base_score, marker='o', label='Baseline')
-# plt.plot(y, additive, marker='s', label='Additive Score')
-# plt.plot(y, mpc, marker='^', label='MPC Score')
-
-# Plot the lines
-# plt.plot(x, base_score, marker='o', label='Baseline')
-# plt.plot(x, additive, marker='s', label='Rating Score')
-# plt.plot(x, mpc, marker='^', label='MPC Score')
-
-plt.plot(y, base_score, marker='o', label='LND Routing')
-plt.plot(y, additive, marker='s', label='MPC + Rating Score')
-plt.plot(y, mpc, marker='^', label='MPC Score')
-plt.plot(y, shortestpath, marker='^', label='Shortest Path')
+plt.plot(malacious_percentage, lnd_path_fixed, marker='o', label='LND Routing')
+plt.plot(malacious_percentage, reputation_score_fixed, marker='o', label='MPC + Rating Score')
+plt.plot(malacious_percentage, mpc_fixed, marker='o', label='MPC Score')
+plt.plot(malacious_percentage, shortest_path_fixed, marker='o', label='Shortest Path')
 
 # Labels and title
-plt.xlabel('Percentage (%)')
+plt.xlabel('Malicious Percentage (%)')
 plt.ylabel('Success Rate (%)')
-# plt.title('Random Amount: Success Rate vs Malacious Node')
 plt.title('Fixed Amount: Success Rate vs Malacious Node')
 
-
+# Force x-axis ticks at specific values
+plt.xticks([0, 3, 6, 9, 12, 15])
 
 # Axis limits
 plt.xlim(0, 16)
 plt.ylim(0, 100)
 
-# plt.xlim(0, 30)
-# plt.ylim(0, 100)
-
-# Grid and legend
 plt.grid(True)
 plt.legend()
-
 # Show the plot
-# plt.show()
+plt.show()
 
 
 
-H = [0.5, 1, 2, 4, 8, 16]
-success =[66,77,80,70]
+# --------        Figure 1: Random Amount      -----------
 
 
-plt.plot(H, success, marker='^', label='Half-life')
+# under different Malacious conditions with the random balance
+lnd_path_random = [72, 70, 61, 50, 47, 47]
+reputation_score_random =   [100, 90, 88, 75, 80, 65]
+mpc_random = [100, 87, 76, 62, 61, 54]
+shortest_path_random = [46,39,41,37,33,29]
+
+plt.plot(malacious_percentage, lnd_path_random, marker='o', label='LND Routing')
+plt.plot(malacious_percentage, reputation_score_random, marker='o', label='MPC + Rating Score')
+plt.plot(malacious_percentage, mpc_random, marker='o', label='MPC Score')
+plt.plot(malacious_percentage, shortest_path_random, marker='o', label='Shortest Path')
 
 # Labels and title
-plt.xlabel('Half-life (%)')
+plt.xlabel('Malicious Percentage (%)')
 plt.ylabel('Success Rate (%)')
-# plt.title('Random Amount: Success Rate vs Malacious Node')
-plt.title('Fixed Amount: Half-life under 10% Malacious Node')
+plt.title('Random Amount: Success Rate vs Malacious Node')
 
-
+# Force x-axis ticks at specific values
+plt.xticks([0, 3, 6, 9, 12, 15])
 
 # Axis limits
 plt.xlim(0, 16)
 plt.ylim(0, 100)
 
-# plt.xlim(0, 30)
-# plt.ylim(0, 100)
-
-# Grid and legend
 plt.grid(True)
 plt.legend()
+# Show the plot
+plt.show()
 
+
+# --------        Figure 3: MPC Overhead      -----------
+
+# average time it takes for a payment under different Malacious conditions with the random balance
+malacious_percentage = [0,3,6,9,12,15]
+MPC_Time = [0.2217,0.2130,0.2174,0.2147,0.2104,0.2049]
+LND_Time = [0.2208,0.2121,0.2181,0.2135,0.2099,0.2037]
+
+# MPC_Success = [100,88,75,71,57,49]
+# LND_Success = [72,65,57,55,45,41]
+
+plt.plot(malacious_percentage, MPC_Time, marker='o', label='MPC')
+plt.plot(malacious_percentage, LND_Time, marker='o', label='LND Routing')
+
+# Labels and title
+plt.xlabel('Malicious Percentage (%)')
+plt.ylabel('Average Payment Time (seconds)')
+plt.title('')
+
+# Force x-axis ticks at specific values
+plt.xticks([0, 3, 6, 9, 12, 15])
+
+# Axis limits
+plt.xlim(0, 16)
+plt.ylim(0.19, 0.23)
+
+plt.grid(True)
+plt.legend()
 # Show the plot
 plt.show()
 
@@ -118,10 +102,28 @@ plt.show()
 # MPC and LND Path find time difference testing
 # Calcuation based on 10,000 simulation
 # under [0%, 3%, 6%, 9%, 12%, 15%] malacious node
-MPC_Time = [0.2217,0.2130,0.2174,0.2147,0.2104]
-LND_Time = [0.2208,0.2121,0.2181,0.2135,0.2099]
+MPC_Time = [0.2217,0.2130,0.2174,0.2147,0.2104,0.2049]
+LND_Time = [0.2208,0.2121,0.2181,0.2135,0.2099,0.2037]
 
 #successrate
-MPC_Success = [100,88,75,71,57]
-LND_Success = [72,65,57,55,45]
+MPC_Success = [100,88,75,71,57,49]
+LND_Success = [72,65,57,55,45,41]
 
+
+
+# Reputation score Half-life tuning
+# Calcuation based on 10,000 simulation
+# under Half-life 1,2,4,8,16 events, and alpha = 1 and beta = 1
+half_life_success = [72,68,67,69,72] #[1,2,4,8,16]
+
+
+# Reputation score Half-life tuning
+# Calcuation based on 10,000 simulation
+# under Half-life, alpha, and beta = 1,2,4,8,16 
+half_life_alpha_beta_success = [72,72,74,63,70] #[1,2,4,8,16]
+
+
+# Reputation score Half-life tuning
+# Calcuation based on 10,000 simulation
+# under Half-life, alpha, and beta = 4, with rating score 0.05,0.10, 0.15, 0.20, 0.25
+half_life_alpha_beta_success_threshold = [77,67,65,66,58] #[0.05,0.10,0.15,0.25]

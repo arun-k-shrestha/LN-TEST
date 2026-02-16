@@ -23,10 +23,10 @@ for percent in malicious_percentages:
         config.write(f)
     
     # Run the main script
-    print("run_simulation_score_add fixed")
+    print("run_reputation_score")
      # Run the main script and capture output
     result = subprocess.run(
-        ['python3', 'run_simulation_score_add.py'],
+        ['python3', 'run_reputation_score.py'],
         capture_output=True,
         text=True
     )
