@@ -42,8 +42,6 @@ global use_log, case
 # prob_dict = {}
 epoch = int(config['General']['iterations'])
 
-# print(epoch) #10000
-
 #General
 cbr = int(config['General']['cbr'])
 src_type = config['General']['source_type']

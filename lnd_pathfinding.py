@@ -1,5 +1,3 @@
-# This code is modified
-
 # The original Author: 
 # S. Saraswathi and C. K¨ummerle, “An exposition of pathfinding
 # strategies within lightning network clients,” 2025. [Online]. Available:

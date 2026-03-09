@@ -1,3 +1,5 @@
+# This simulates the Yao' Millionare's Problem
+
 import random
 import math
 

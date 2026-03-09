@@ -1,4 +1,11 @@
-# Code adapted from the original implementation by Sindura Saraswathi
+# This code is modified
+
+# The original Author: 
+# S. Saraswathi and C. K¨ummerle, “An exposition of pathfinding
+# strategies within lightning network clients,” 2025. [Online]. Available:
+# https://arxiv.org/abs/2410.13784
+
+# This simulation uses the shortest path approach in path finding
 
 import datetime
 import networkx as nx

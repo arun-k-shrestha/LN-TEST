@@ -1,5 +1,12 @@
-# Code adapted from the original implementation by Sindura Saraswathi
-# line: xyz cointains the MPC check.
+#  This code is modified
+
+# The original Author: 
+# S. Saraswathi and C. K¨ummerle, “An exposition of pathfinding
+# strategies within lightning network clients,” 2025. [Online]. Available:
+# https://arxiv.org/abs/2410.13784
+
+# This simulation checks the MPC overhead.  We directly measure latency and compare MPC against 
+# the LND routing under identical conditions (same topology, sender, path-selection setting)
 
 import datetime
 import networkx as nx
@@ -851,9 +858,9 @@ if __name__ == '__main__':
     print(f"Average No-MPC time: {avg_nompc:.6f} seconds")
     print(f"Average difference (MPC - NoMPC): {(avg_mpc - avg_nompc):.6f} seconds")
 
-    df = pd.DataFrame(paired)
-    df.to_csv("mpc_vs_nompc_times.csv", index=False)
-    print("Wrote mpc_vs_nompc_times.csv")
+    # df = pd.DataFrame(paired)
+    # df.to_csv("mpc_vs_nompc_times.csv", index=False)
+    # print("Wrote mpc_vs_nompc_times.csv")
 
 
     # If you force only LND in work, then:
